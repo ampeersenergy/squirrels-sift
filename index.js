@@ -80,11 +80,11 @@ async function resultHandler(options, result) {
         emissions_kg: Number.isNaN(emissions_kg) ? 0 : emissions_kg,
         consumption_kWh: Number.isNaN(consumption_kWh) ? 0 : consumption_kWh,
       };
-      console.log(obj);
+      //console.log(obj);
 
       // Add the emissions of the current package to the total emissions.
       acc.aggregatedEmissions_kg += obj.emissions_kg;
-      
+
       // Add the consumption of the current package to the total consumption.
       acc.aggregated_kWh += obj.consumption_kWh;
 
@@ -99,13 +99,13 @@ async function resultHandler(options, result) {
     }, { aggregatedEmissions_kg: 0, aggregated_kWh: 0, flights_LDN_JFK: 0, timespan: options.baseTime, details: [] })
     : result;
 
+  console.dir(_result, { depth: null });
+
   // If the 'out' option is provided, write the result to a file.
-  // Otherwise, log the result to the console.
+
   if (options.out) {
     const fullPath = resolve(options.out);
     await writeFile(fullPath, JSON.stringify(_result, null, 2), 'utf8');
-  } else {
-    console.dir(_result, { depth: null });
   }
 }
 
@@ -114,15 +114,16 @@ async function npmHandler(options) {
   const co2Listings = await npmPackagesHandler(options.baseTime, npmList.map(_ => ({ name: _ })));
   await resultHandler(options, co2Listings);
 }
+
 async function repohandler(options) {
   const { repo } = options;
   const fullPath = resolve(repo);
-  const packageJSONFile = await readFile(`${ fullPath }/package.json`, 'utf8');
+  const packageJSONFile = await readFile(`${fullPath}/package.json`, 'utf8');
   const packageJSON = JSON.parse(packageJSONFile);
 
   const npmPackageVersionListings = Object.entries(packageJSON.dependencies).map(([name, version]) => ({ name, version }));
   const result = await npmPackagesHandler(options.baseTime, npmPackageVersionListings, true);
-  
+
   await resultHandler(options, result);
 }
 
